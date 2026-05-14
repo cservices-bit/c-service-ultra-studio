@@ -17,6 +17,7 @@ import {
 import { Link } from "wouter";
 import { toast } from "sonner";
 
+/* ================= TYPES ================= */
 type Tab =
   | "overview"
   | "news"
@@ -25,29 +26,29 @@ type Tab =
   | "messages"
   | "settings";
 
-const NAV_ITEMS = [
+/* ================= NAV ================= */
+const NAV_ITEMS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "overview", label: "Vue d'ensemble", icon: LayoutDashboard },
   { key: "news", label: "Actualités", icon: Newspaper },
   { key: "business", label: "Annonces", icon: Briefcase },
   { key: "users", label: "Utilisateurs", icon: Users },
   { key: "messages", label: "Messages", icon: MessageSquare },
   { key: "settings", label: "Paramètres", icon: Settings },
-] as const;
+];
 
-/* ===================== OVERVIEW ===================== */
+/* ================= OVERVIEW ================= */
 function OverviewTab() {
   const { visitCount, listings, users } = useStore();
   const [news, setNews] = useState<any[]>([]);
 
   useEffect(() => {
-    supabase
-      .from("posts")
-      .select("*")
-      .then(({ data }) => setNews(data || []));
+    supabase.from("posts").select("*").then(({ data }) => {
+      setNews(data || []);
+    });
   }, []);
 
   const cards = [
-    { icon: TrendingUp, label: "Visites", value: visitCount },
+    { icon: TrendingUp, label: "Visiteurs", value: visitCount },
     { icon: Newspaper, label: "News", value: news.length },
     { icon: Briefcase, label: "Annonces", value: listings.length },
     { icon: Users, label: "Users", value: users.length },
@@ -55,11 +56,13 @@ function OverviewTab() {
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
       {cards.map((c) => (
         <div key={c.label} className="cinema-card p-5">
-          <c.icon className="text-white mb-2" />
-          <p className="text-white text-xl">{c.value}</p>
+          <div className="flex justify-between">
+            <c.icon className="text-cyan-400" />
+          </div>
+          <div className="text-2xl text-white font-bold">{c.value}</div>
           <p className="text-white/40 text-xs">{c.label}</p>
         </div>
       ))}
@@ -67,10 +70,9 @@ function OverviewTab() {
   );
 }
 
-/* ===================== NEWS ===================== */
+/* ================= NEWS ================= */
 function NewsTab() {
   const [news, setNews] = useState<any[]>([]);
-  const [show, setShow] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -91,9 +93,7 @@ function NewsTab() {
     load();
   }, []);
 
-  const add = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const addNews = async () => {
     const { error } = await supabase.from("posts").insert({
       title: form.title,
       content: form.description,
@@ -105,47 +105,55 @@ function NewsTab() {
     if (error) return toast.error(error.message);
 
     toast.success("News ajoutée !");
-    setShow(false);
+    setForm({ title: "", description: "", image: "", category: "Studio" });
     load();
   };
 
   const remove = async (id: string) => {
     await supabase.from("posts").delete().eq("id", id);
     setNews(news.filter((n) => n.id !== id));
-    toast.success("Supprimé !");
+    toast.success("Supprimé");
   };
 
   return (
     <div>
-      <button onClick={() => setShow(!show)} className="btn-cinema">
-        <Plus /> Ajouter
-      </button>
+      <h2 className="text-white mb-4">News ({news.length})</h2>
 
-      {show && (
-        <form onSubmit={add} className="cinema-card p-4 mt-3">
-          <input
-            placeholder="Titre"
-            onChange={(e) =>
-              setForm({ ...form, title: e.target.value })
-            }
-          />
-          <textarea
-            placeholder="Description"
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
-          />
-          <button className="bg-blue-500 px-3 py-1 mt-2">
-            Publier
-          </button>
-        </form>
-      )}
+      <div className="cinema-card p-4 mb-4">
+        <input
+          placeholder="Titre"
+          className="w-full p-2 mb-2"
+          value={form.title}
+          onChange={(e) =>
+            setForm({ ...form, title: e.target.value })
+          }
+        />
+        <textarea
+          placeholder="Description"
+          className="w-full p-2 mb-2"
+          value={form.description}
+          onChange={(e) =>
+            setForm({ ...form, description: e.target.value })
+          }
+        />
+        <button onClick={addNews} className="btn-cinema">
+          Ajouter
+        </button>
+      </div>
 
       {news.map((n) => (
-        <div key={n.id} className="cinema-card p-3 flex justify-between">
-          <p>{n.title}</p>
+        <div
+          key={n.id}
+          className="cinema-card p-3 flex justify-between"
+        >
+          <div>
+            <p className="text-white">{n.title}</p>
+            <p className="text-white/40 text-xs">
+              {n.category}
+            </p>
+          </div>
           <button onClick={() => remove(n.id)}>
-            <Trash2 />
+            <Trash2 className="text-red-400" />
           </button>
         </div>
       ))}
@@ -153,14 +161,16 @@ function NewsTab() {
   );
 }
 
-/* ===================== BUSINESS ===================== */
+/* ================= BUSINESS (SUPABASE OK) ================= */
 function BusinessTab() {
   const [listings, setListings] = useState<any[]>([]);
-  const [show, setShow] = useState(false);
   const [form, setForm] = useState({
     title: "",
     price: "",
     description: "",
+    category: "Montage",
+    image: "",
+    whatsapp: "",
   });
 
   const load = async () => {
@@ -176,60 +186,72 @@ function BusinessTab() {
     load();
   }, []);
 
-  const add = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const add = async () => {
     const { error } = await supabase.from("listings").insert({
-      title: form.title,
-      price: form.price,
-      description: form.description,
+      ...form,
       created_at: new Date().toISOString(),
     });
 
     if (error) return toast.error(error.message);
 
     toast.success("Annonce ajoutée !");
-    setShow(false);
+    setForm({
+      title: "",
+      price: "",
+      description: "",
+      category: "Montage",
+      image: "",
+      whatsapp: "",
+    });
+
     load();
   };
 
   const remove = async (id: string) => {
     await supabase.from("listings").delete().eq("id", id);
     setListings(listings.filter((l) => l.id !== id));
-    toast.success("Supprimé !");
+    toast.success("Supprimé");
   };
 
   return (
     <div>
-      <button onClick={() => setShow(!show)} className="btn-cinema">
-        <Plus /> Ajouter
-      </button>
+      <h2 className="text-white mb-4">
+        Business ({listings.length})
+      </h2>
 
-      {show && (
-        <form onSubmit={add} className="cinema-card p-4 mt-3">
-          <input
-            placeholder="Titre"
-            onChange={(e) =>
-              setForm({ ...form, title: e.target.value })
-            }
-          />
-          <input
-            placeholder="Prix"
-            onChange={(e) =>
-              setForm({ ...form, price: e.target.value })
-            }
-          />
-          <button className="bg-blue-500 px-3 py-1 mt-2">
-            Publier
-          </button>
-        </form>
-      )}
+      <div className="cinema-card p-4 mb-4">
+        <input
+          placeholder="Titre"
+          value={form.title}
+          onChange={(e) =>
+            setForm({ ...form, title: e.target.value })
+          }
+          className="w-full p-2 mb-2"
+        />
+        <input
+          placeholder="Prix"
+          value={form.price}
+          onChange={(e) =>
+            setForm({ ...form, price: e.target.value })
+          }
+          className="w-full p-2 mb-2"
+        />
+        <button onClick={add} className="btn-cinema">
+          Publier
+        </button>
+      </div>
 
       {listings.map((l) => (
-        <div key={l.id} className="cinema-card p-3 flex justify-between">
-          <p>{l.title}</p>
+        <div
+          key={l.id}
+          className="cinema-card p-3 flex justify-between"
+        >
+          <div>
+            <p className="text-white">{l.title}</p>
+            <p className="text-white/40 text-xs">{l.price}</p>
+          </div>
           <button onClick={() => remove(l.id)}>
-            <Trash2 />
+            <Trash2 className="text-red-400" />
           </button>
         </div>
       ))}
@@ -237,16 +259,16 @@ function BusinessTab() {
   );
 }
 
-/* ===================== ADMIN ===================== */
+/* ================= ADMIN ================= */
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("overview");
-  const { currentUser } = useStore();
+  const { currentUser, logout } = useStore();
 
   if (!currentUser || currentUser.role !== "admin") {
     return (
-      <div className="text-white flex justify-center items-center h-screen">
-        <Lock />
-        Accès refusé
+      <div className="h-screen flex items-center justify-center text-white">
+        <Lock className="text-red-400" />
+        <Link href="/">Retour</Link>
       </div>
     );
   }
@@ -254,23 +276,33 @@ export default function AdminPage() {
   const TABS: Record<Tab, React.ReactNode> = {
     overview: <OverviewTab />,
     news: <NewsTab />,
-    business: <BusinessTab />, // ✅ CORRIGÉ ICI
-    users: <div>Users</div>,
-    messages: <div>Messages</div>,
-    settings: <div>Settings</div>,
+    business: <BusinessTab />,
+    users: <div className="text-white">Users</div>,
+    messages: <div className="text-white">Messages</div>,
+    settings: <div className="text-white">Settings</div>,
   };
 
   return (
-    <div className="p-6">
-      <div className="flex gap-3 mb-6">
-        {NAV_ITEMS.map((i) => (
-          <button key={i.key} onClick={() => setTab(i.key)}>
-            {i.label}
+    <div className="flex min-h-screen">
+      <aside className="w-64 p-4 border-r border-white/10">
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.key}
+            onClick={() => setTab(item.key)}
+            className="block text-left w-full text-white/70 p-2 hover:text-white"
+          >
+            <item.icon size={14} /> {item.label}
           </button>
         ))}
-      </div>
+        <button
+          onClick={logout}
+          className="text-red-400 mt-6"
+        >
+          Logout
+        </button>
+      </aside>
 
-      {TABS[tab]}
+      <main className="flex-1 p-6">{TABS[tab]}</main>
     </div>
   );
 }
