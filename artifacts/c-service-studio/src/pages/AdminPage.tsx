@@ -1,6 +1,5 @@
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
-import { useStore } from "@/stores/useStore";
 import {
   LayoutDashboard,
   Users,
@@ -275,14 +274,25 @@ const logout = async () => {
   window.location.href = "/login";
 };
 
-  if (!currentUser || currentUser.role !== "admin") {
-    return (
-      <div className="h-screen flex items-center justify-center text-white">
-        <Lock className="text-red-400" />
-        <Link href="/">Retour</Link>
+  if (!session) {
+  return (
+    <div className="h-screen flex items-center justify-center text-white">
+      <div className="text-center">
+        <Lock className="text-red-400 mx-auto mb-3" />
+
+        <p className="mb-4">
+          Connexion admin requise
+        </p>
+
+        <Link href="/login">
+          <button className="btn-cinema">
+            Login Admin
+          </button>
+        </Link>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   const TABS: Record<Tab, React.ReactNode> = {
     overview: <OverviewTab />,
