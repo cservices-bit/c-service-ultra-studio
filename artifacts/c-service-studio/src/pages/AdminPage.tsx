@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
+import { useStore } from "@/stores/useStore";
 import {
   LayoutDashboard,
   Users,
@@ -9,7 +10,6 @@ import {
   Settings,
   Lock,
   Trash2,
-  Plus,
   TrendingUp,
   Film,
 } from "lucide-react";
@@ -35,6 +35,26 @@ const NAV_ITEMS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "settings", label: "Paramètres", icon: Settings },
 ];
 
+/* ================= STORAGE UPLOAD ================= */
+const uploadImage = async (file: File) => {
+  const fileName = `${Date.now()}-${file.name}`;
+
+  const { error } = await supabase.storage
+    .from("c-service-images")
+    .upload(fileName, file);
+
+  if (error) {
+    toast.error(error.message);
+    return null;
+  }
+
+  const { data } = supabase.storage
+    .from("c-service-images")
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+};
+
 /* ================= OVERVIEW ================= */
 function OverviewTab() {
   const { visitCount, listings, users } = useStore();
@@ -58,9 +78,7 @@ function OverviewTab() {
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
       {cards.map((c) => (
         <div key={c.label} className="cinema-card p-5">
-          <div className="flex justify-between">
-            <c.icon className="text-cyan-400" />
-          </div>
+          <c.icon className="text-cyan-400" />
           <div className="text-2xl text-white font-bold">{c.value}</div>
           <p className="text-white/40 text-xs">{c.label}</p>
         </div>
@@ -121,35 +139,25 @@ function NewsTab() {
       <div className="cinema-card p-4 mb-4">
         <input
           placeholder="Titre"
-          className="w-full p-2 mb-2"
           value={form.title}
-          onChange={(e) =>
-            setForm({ ...form, title: e.target.value })
-          }
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
+
         <textarea
           placeholder="Description"
-          className="w-full p-2 mb-2"
           value={form.description}
           onChange={(e) =>
             setForm({ ...form, description: e.target.value })
           }
         />
-        <button onClick={addNews} className="btn-cinema">
-          Ajouter
-        </button>
+
+        <button onClick={addNews}>Ajouter</button>
       </div>
 
       {news.map((n) => (
-        <div
-          key={n.id}
-          className="cinema-card p-3 flex justify-between"
-        >
+        <div key={n.id} className="cinema-card p-3 flex justify-between">
           <div>
             <p className="text-white">{n.title}</p>
-            <p className="text-white/40 text-xs">
-              {n.category}
-            </p>
           </div>
           <button onClick={() => remove(n.id)}>
             <Trash2 className="text-red-400" />
@@ -160,7 +168,7 @@ function NewsTab() {
   );
 }
 
-/* ================= BUSINESS (SUPABASE OK) ================= */
+/* ================= BUSINESS ================= */
 function BusinessTab() {
   const [listings, setListings] = useState<any[]>([]);
   const [form, setForm] = useState({
@@ -214,41 +222,30 @@ function BusinessTab() {
 
   return (
     <div>
-      <h2 className="text-white mb-4">
-        Business ({listings.length})
-      </h2>
+      <h2 className="text-white mb-4">Business ({listings.length})</h2>
 
       <div className="cinema-card p-4 mb-4">
         <input
           placeholder="Titre"
           value={form.title}
-          onChange={(e) =>
-            setForm({ ...form, title: e.target.value })
-          }
-          className="w-full p-2 mb-2"
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
         />
         <input
           placeholder="Prix"
           value={form.price}
-          onChange={(e) =>
-            setForm({ ...form, price: e.target.value })
-          }
-          className="w-full p-2 mb-2"
+          onChange={(e) => setForm({ ...form, price: e.target.value })}
         />
-        <button onClick={add} className="btn-cinema">
-          Publier
-        </button>
+
+        <button onClick={add}>Publier</button>
       </div>
 
       {listings.map((l) => (
-        <div
-          key={l.id}
-          className="cinema-card p-3 flex justify-between"
-        >
+        <div key={l.id} className="cinema-card p-3 flex justify-between">
           <div>
             <p className="text-white">{l.title}</p>
             <p className="text-white/40 text-xs">{l.price}</p>
           </div>
+
           <button onClick={() => remove(l.id)}>
             <Trash2 className="text-red-400" />
           </button>
@@ -262,37 +259,27 @@ function BusinessTab() {
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("overview");
   const [session, setSession] = useState<any>(null);
+  const { currentUser } = useStore();
 
-useEffect(() => {
-  supabase.auth.getSession().then(({ data }) => {
-    setSession(data.session);
-  });
-}, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+  }, []);
 
-const logout = async () => {
-  await supabase.auth.signOut();
-  window.location.href = "/login";
-};
+  const logout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
 
   if (!session) {
-  return (
-    <div className="h-screen flex items-center justify-center text-white">
-      <div className="text-center">
-        <Lock className="text-red-400 mx-auto mb-3" />
-
-        <p className="mb-4">
-          Connexion admin requise
-        </p>
-
-        <Link href="/login">
-          <button className="btn-cinema">
-            Login Admin
-          </button>
-        </Link>
+    return (
+      <div className="h-screen flex items-center justify-center text-white">
+        <Lock className="text-red-400" />
+        <Link href="/login">Login Admin</Link>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   const TABS: Record<Tab, React.ReactNode> = {
     overview: <OverviewTab />,
@@ -307,18 +294,12 @@ const logout = async () => {
     <div className="flex min-h-screen">
       <aside className="w-64 p-4 border-r border-white/10">
         {NAV_ITEMS.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setTab(item.key)}
-            className="block text-left w-full text-white/70 p-2 hover:text-white"
-          >
+          <button key={item.key} onClick={() => setTab(item.key)}>
             <item.icon size={14} /> {item.label}
           </button>
         ))}
-        <button
-          onClick={logout}
-          className="text-red-400 mt-6"
-        >
+
+        <button onClick={logout} className="text-red-400 mt-6">
           Logout
         </button>
       </aside>
