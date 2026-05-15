@@ -262,7 +262,18 @@ function BusinessTab() {
 /* ================= ADMIN ================= */
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("overview");
-  const { currentUser, logout } = useStore();
+  const [session, setSession] = useState<any>(null);
+
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    setSession(data.session);
+  });
+}, []);
+
+const logout = async () => {
+  await supabase.auth.signOut();
+  window.location.href = "/login";
+};
 
   if (!currentUser || currentUser.role !== "admin") {
     return (
