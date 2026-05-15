@@ -56,15 +56,20 @@ function AppRoutes() {
       <Route path="/blog" component={() => <Layout><BlogPage /></Layout>} />
       <Route path="/downloads" component={() => <Layout><DownloadsPage /></Layout>} />
       <Route path="/contact" component={() => <Layout><ContactPage /></Layout>} />
-      <Route path="/admin" component={() => <Layout><AdminPage /></Layout>} />
+
+      {/* ADMIN */}
+      <Route path="/admin" component={AdminPage} />
+      <Route path="/login" component={LoginPage} />
+
       <Route path="/luts" component={() => <Layout><LutsPage /></Layout>} />
       <Route path="/tutorials" component={() => <Layout><TutorialsPage /></Layout>} />
       <Route path="/privacy" component={() => <Layout><PrivacyPage /></Layout>} />
       <Route path="/terms" component={() => <Layout><TermsPage /></Layout>} />
       <Route path="/cookies" component={() => <Layout><CookiesPage /></Layout>} />
       <Route path="/security" component={() => <Layout><SecurityPage /></Layout>} />
+
+      {/* 404 */}
       <Route component={NotFound} />
-      <Route path="/login" component={LoginPage} />
     </Switch>
   );
 }
