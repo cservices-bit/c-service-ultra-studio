@@ -14,7 +14,7 @@ import CustomCursor from "@/components/CustomCursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import BackToTop from "@/components/BackToTop";
 
-import LoginPage from "@/pages/LoginPage";
+import LoginPage from "@/pages/LoginPage.tsx";
 import Home from "@/pages/Home";
 import AcademyPage from "@/pages/AcademyPage";
 import BusinessPage from "@/pages/BusinessPage";
