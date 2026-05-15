@@ -14,6 +14,7 @@ import CustomCursor from "@/components/CustomCursor";
 import ScrollProgress from "@/components/ScrollProgress";
 import BackToTop from "@/components/BackToTop";
 
+import LoginPage from "@/pages/LoginPage";
 import Home from "@/pages/Home";
 import AcademyPage from "@/pages/AcademyPage";
 import BusinessPage from "@/pages/BusinessPage";
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Route path="/cookies" component={() => <Layout><CookiesPage /></Layout>} />
       <Route path="/security" component={() => <Layout><SecurityPage /></Layout>} />
       <Route component={NotFound} />
+      <Route path="/login" component={LoginPage} />
     </Switch>
   );
 }
