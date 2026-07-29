@@ -258,28 +258,34 @@ function BusinessTab() {
 /* ================= ADMIN ================= */
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("overview");
-  const [session, setSession] = useState<any>(null);
-  const { currentUser } = useStore();
+  const [session, setSession] = useState<any>(undefined);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-    });
-  }, []);
+useEffect(() => {
+  supabase.auth.getSession().then(({ data }) => {
+    setSession(data.session);
+  });
 
-  const logout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
-  };
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
 
-  if (!session) {
-    return (
-      <div className="h-screen flex items-center justify-center text-white">
-        <Lock className="text-red-400" />
-        <Link href="/login">Login Admin</Link>
-      </div>
-    );
-  }
+  return () => subscription.unsubscribe();
+}, []);
+
+if (session === undefined) {
+  return (
+    <div className="h-screen flex items-center justify-center text-white">
+      Chargement...
+    </div>
+  );
+}
+
+if (!session) {
+  window.location.href = "/login";
+  return null;
+}
 
   const TABS: Record<Tab, React.ReactNode> = {
     overview: <OverviewTab />,
