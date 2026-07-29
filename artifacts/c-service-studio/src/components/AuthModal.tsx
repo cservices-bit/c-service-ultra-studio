@@ -11,21 +11,52 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false);
   
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
+  e.preventDefault();
+  setLoading(true);
+
+  try {
     if (tab === "login") {
       const { error } = await supabase.auth.signInWithPassword({
-  email,
-  password,
-});
+        email,
+        password,
+      });
 
-if (error) {
-  toast.error(error.message);
-} else {
-  toast.success("Connexion réussie !");
-  onClose();
-}
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Connexion réussie !");
+        onClose();
+      }
+    } else {
+      if (!name.trim()) {
+        toast.error("Entrez votre nom.");
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Compte créé avec succès !");
+        onClose();
+      }
+    }
+  } catch (err) {
+    toast.error("Une erreur est survenue.");
+  }
+
+  setLoading(false);
+};
        else {
       if (!name.trim()) { toast.error("Entrez votre nom."); setLoading(false); return; }
       const { error } = await supabase.auth.signUp({
