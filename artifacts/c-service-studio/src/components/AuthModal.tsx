@@ -27,36 +27,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
         toast.success("Connexion réussie !");
         onClose();
       }
-    } else {
-      if (!name.trim()) {
-        toast.error("Entrez votre nom.");
-        setLoading(false);
-        return;
-      }
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-          },
-        },
-      });
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Compte créé avec succès !");
-        onClose();
-      }
-    }
-  } catch (err) {
-    toast.error("Une erreur est survenue.");
-  }
-
-  setLoading(false);
-};
+    } 
        else {
       if (!name.trim()) { toast.error("Entrez votre nom."); setLoading(false); return; }
       const { error } = await supabase.auth.signUp({
