@@ -23,12 +23,11 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
         });
 
         if (error) {
-          toast.error(error.message);
-        } else {
-  toast.success(
-    "Compte créé ! Vérifiez votre e-mail pour confirmer votre compte."
-  );
+  toast.error(error.message);
+} else {
+  toast.success("Connexion réussie !");
   onClose();
+  window.location.href = "/admin";
 }
           window.location.href = "/admin";
         }
