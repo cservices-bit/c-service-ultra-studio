@@ -29,8 +29,6 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
   onClose();
   window.location.href = "/admin";
 }
-          window.location.href = "/admin";
-        }
       } else {
         if (!name.trim()) {
           toast.error("Entrez votre nom.");
