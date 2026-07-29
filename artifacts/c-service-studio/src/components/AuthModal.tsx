@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { X, User, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { useStore } from "@/stores/useStore";
 import { toast } from "sonner";
-
+import { supabase } from "@/lib/supabase";
 export default function AuthModal({ onClose }: { onClose: () => void }) {
   const [tab, setTab] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
@@ -10,8 +9,7 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login, register } = useStore();
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -28,9 +26,7 @@ if (error) {
   toast.success("Connexion réussie !");
   onClose();
 }
-      if (res.success) { toast.success("Connexion réussie !"); onClose(); }
-      else toast.error(res.error || "Erreur de connexion");
-    } else {
+       else {
       if (!name.trim()) { toast.error("Entrez votre nom."); setLoading(false); return; }
       const { error } = await supabase.auth.signUp({
   email,
@@ -48,9 +44,7 @@ if (error) {
   toast.success("Compte créé avec succès !");
   onClose();
 }
-      if (res.success) { toast.success("Compte créé avec succès !"); onClose(); }
-      else toast.error(res.error || "Erreur d'inscription");
-    }
+      
     setLoading(false);
   };
 
