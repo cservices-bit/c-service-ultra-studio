@@ -17,12 +17,37 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
     setLoading(true);
     await new Promise(r => setTimeout(r, 600));
     if (tab === "login") {
-      const res = login(email, password);
+      const { error } = await supabase.auth.signInWithPassword({
+  email,
+  password,
+});
+
+if (error) {
+  toast.error(error.message);
+} else {
+  toast.success("Connexion réussie !");
+  onClose();
+}
       if (res.success) { toast.success("Connexion réussie !"); onClose(); }
       else toast.error(res.error || "Erreur de connexion");
     } else {
       if (!name.trim()) { toast.error("Entrez votre nom."); setLoading(false); return; }
-      const res = register(name, email, password);
+      const { error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    data: {
+      name,
+    },
+  },
+});
+
+if (error) {
+  toast.error(error.message);
+} else {
+  toast.success("Compte créé avec succès !");
+  onClose();
+}
       if (res.success) { toast.success("Compte créé avec succès !"); onClose(); }
       else toast.error(res.error || "Erreur d'inscription");
     }
