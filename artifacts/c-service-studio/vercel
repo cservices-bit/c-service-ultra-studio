@@ -1,8 +1,11 @@
 {
   "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
-  "outputDirectory": "dist/public",
+  "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
