@@ -27,8 +27,6 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
 } else {
   toast.success("Connexion réussie !");
   onClose();
-  window.location.href = "/admin";
-}
       } else {
         if (!name.trim()) {
           toast.error("Entrez votre nom.");
